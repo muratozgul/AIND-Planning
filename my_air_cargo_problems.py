@@ -1,4 +1,4 @@
-from aimacode.logic import PropKB
+from aimacode.logic import PropKB #Propositional Logic Knowledge Base
 from aimacode.planning import Action
 from aimacode.search import (
     Node, Problem,
@@ -68,9 +68,9 @@ class AirCargoProblem(Problem):
                         precond_pos = [
                             expr("At({}, {})".format(c, a)),
                             expr("At({}, {})".format(p, a)),
-                            expr("Cargo({})".format(c)),
-                            expr("Plane({})".format(p)),
-                            expr("Airport({})".format(a))
+                            # expr("Cargo({})".format(c)),
+                            # expr("Plane({})".format(p)),
+                            # expr("Airport({})".format(a))
                         ]
                         precond_neg = []
                         effect_add = [expr("In({}, {})".format(c, p))]
@@ -97,9 +97,9 @@ class AirCargoProblem(Problem):
                         precond_pos = [
                             expr("In({}, {})".format(c, p)),
                             expr("At({}, {})".format(p, a)),
-                            expr("Cargo({})".format(c)),
-                            expr("Plane({})".format(p)),
-                            expr("Airport({})".format(a))
+                            # expr("Cargo({})".format(c)),
+                            # expr("Plane({})".format(p)),
+                            # expr("Airport({})".format(a))
                         ]
                         precond_neg = []
                         effect_add = [expr("At({}, {})".format(c, a))]
@@ -125,9 +125,9 @@ class AirCargoProblem(Problem):
                         for p in self.planes:
                             precond_pos = [
                                 expr("At({}, {})".format(p, fr)),
-                                expr("Plane({})".format(p)),
-                                expr("Airport({})".format(fr)),
-                                expr("Airport({})".format(to)),
+                                # expr("Plane({})".format(p)),
+                                # expr("Airport({})".format(fr)),
+                                # expr("Airport({})".format(to)),
                             ]
                             precond_neg = []
                             effect_add = [expr("At({}, {})".format(p, to))]
@@ -148,8 +148,25 @@ class AirCargoProblem(Problem):
             e.g. 'FTTTFF'
         :return: list of Action objects
         """
-        # TODO implement
+        # print('[actions] state:', state)
+        print('[self.goal]', self.goal)
+        print('[self.state_map]', self.state_map)
+        print('[enumerate(self.state_map)]', enumerate(self.state_map))
         possible_actions = []
+        # Knowledge Base
+        kb = PropKB()
+        kb.tell(decode_state(state, self.state_map).pos_sentence())
+        for action in self.actions_list:
+            is_possible = True
+            for clause in action.precond_pos:
+                if clause not in kb.clauses:
+                    is_possible = False
+            for clause in action.precond_neg:
+                if clause in kb.clauses:
+                    is_possible = False
+            if is_possible:
+                possible_actions.append(action)
+        # print('[possible_actions] len:', len(self.actions_list), possible_actions)
         return possible_actions
 
     def result(self, state: str, action: Action):
@@ -161,9 +178,22 @@ class AirCargoProblem(Problem):
         :param action: Action applied
         :return: resulting state after action
         """
-        # TODO implement
         new_state = FluentState([], [])
+        old_state = decode_state(state, self.state_map)
+        for fluent in old_state.pos:
+            if fluent not in action.effect_rem:
+                new_state.pos.append(fluent)
+        for fluent in action.effect_add:
+            if fluent not in new_state.pos:
+                new_state.pos.append(fluent)
+        for fluent in old_state.neg:
+            if fluent not in action.effect_add:
+                new_state.neg.append(fluent)
+        for fluent in action.effect_rem:
+            if fluent not in new_state.neg:
+                new_state.neg.append(fluent)
         return encode_state(new_state, self.state_map)
+
 
     def goal_test(self, state: str) -> bool:
         """ Test the state to see if goal is reached
@@ -203,7 +233,11 @@ class AirCargoProblem(Problem):
         executed.
         '''
         # TODO implement (see Russell-Norvig Ed-3 10.2.3  or Russell-Norvig Ed-2 11.2)
+        # For P1: [self.state_map] -> [At(C1, SFO), At(C2, JFK), At(P1, SFO), At(P2, JFK), At(C2, SFO), In(C2, P1), In(C2, P2), At(C1, JFK), In(C1, P1), In(C1, P2), At(P1, JFK), At(P2, SFO)]
         count = 0
+        for i in range(0, len(self.state_map)):
+            if self.state_map[i] in self.goal and node.state[i] == 'F':
+                count+=1
         return count
 
 

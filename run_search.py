@@ -102,12 +102,13 @@ def main(p_choices, s_choices):
 
 
 def show_solution(node, elapsed_time):
+    print('[Murat] SHOW_SOLUTION node:', node)
     print("Plan length: {}  Time elapsed in seconds: {}".format(len(node.solution()), elapsed_time))
     for action in node.solution():
         print("{}{}".format(action.name, action.args))
 
 if __name__=="__main__":
-    parser = argparse.ArgumentParser(description="Solve air cargo planning problems " + 
+    parser = argparse.ArgumentParser(description="Solve air cargo planning problems " +
         "using a variety of state space search methods including uninformed, greedy, " +
         "and informed heuristic search.")
     parser.add_argument('-m', '--manual', action="store_true",
